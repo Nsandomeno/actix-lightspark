@@ -2,6 +2,7 @@ use crate::config;
 use std::time::Duration;
 use reqwest::Client;
 use secrecy::{Secret, ExposeSecret};
+use serde::Serialize;
 use tracing::{error, info};
 
 #[derive(Clone)]
@@ -18,7 +19,6 @@ pub struct PlaidLinkPayload {
     pub client_user_id : String,
 }
 
-
 /// the http request to the Plaid API
 #[derive(serde::Serialize)]
 pub struct PlaidLinkTokenRequest {
@@ -31,6 +31,22 @@ pub struct PlaidLinkTokenRequest {
     pub country_codes: Vec<String>,
     pub products     : Vec<String>,
     pub user         : PlaidUser,
+}
+
+
+/// http request to this api
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct PlaidTokenExchangePayload {
+    pub public_token : String,
+}
+
+
+// http request to plaid api
+#[derive(Serialize)]
+pub struct PlaidTokenExchangeRequest {
+    pub client_id     : String,
+    pub client_secret : String,
+    pub public_token  : String,
 }
 
 
@@ -76,7 +92,7 @@ impl Plaid {
             client_secret:  config.plaid_client_secret.clone()
         }
     }
-
+    /// TODO create type for [ `ok` ] result case
     pub async fn link_token(
         &self,
         payload: PlaidLinkPayload
@@ -126,6 +142,40 @@ impl Plaid {
                 return Err(err);
             }
         }   
+    }
+    /// TODO create type for [ `ok` ] result case
+    pub async fn public_token_exchange(
+        &self,
+        payload: PlaidTokenExchangePayload,
+    ) -> Result<serde_json::Value, reqwest::Error> {
+        // url
+        let url = format!("{}/item/public_token/exchange", self.base_uri);
+        // build request
+        let request = PlaidTokenExchangeRequest {
+            client_id: self.client_id.expose_secret().clone(),
+            client_secret: self.client_secret.expose_secret().clone(),
+            public_token: payload.public_token
+        };
+        // fire request
+        let res = self.http_client
+            .post(url)
+            .header("Content-Type", "application/json")
+            .json(&request)
+            .send()
+            .await;
+        // handle
+        match res {
+            Ok(response) => {
+                let status_code = response.status().as_u16();
+                info!("Plaid status code: {}", status_code);
+                return response.json::<serde_json::Value>().await                
+            },
+            Err(err) => {
+                let msg = err.to_string();
+                error!("Failed to handle response... {}", msg);
+                return Err(err);
+            }
+        }
     }
 }
 

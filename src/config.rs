@@ -6,7 +6,6 @@ use serde_aux::field_attributes::{deserialize_number_from_string, deserialize_bo
 // via: https://github.com/lightsparkdev/lightspark-rs/blob/main/examples/uma-demo/src/config.rs
 // thanks, zhenlu and Lightspark Eng!
 
-
 /// TODO uncomment fields in this file and derive several configs
 /// based on the ways to load your node's private key here:
 /// https://docs.lightspark.com/lightspark-sdk/signed-operations?language=Python#signed-operations
