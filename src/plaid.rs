@@ -1,9 +1,12 @@
 use crate::config;
+
 use std::time::Duration;
 use reqwest::Client;
 use secrecy::{Secret, ExposeSecret};
 use serde::Serialize;
+use sqlx::PgPool;
 use tracing::{error, info};
+use actix_web::web::Data;
 
 #[derive(Clone)]
 pub enum PlaidMode {
@@ -146,6 +149,7 @@ impl Plaid {
     /// TODO create type for [ `ok` ] result case
     pub async fn public_token_exchange(
         &self,
+        _pool   : Data<PgPool>,
         payload: PlaidTokenExchangePayload,
     ) -> Result<serde_json::Value, reqwest::Error> {
         // url
@@ -164,6 +168,10 @@ impl Plaid {
             .send()
             .await;
         // handle
+        // TODO continue with public token exchange flow
+        // use the pool extractor to write the access token to the
+        // database. Need the user's `client_user_id` and `phone_number`
+        // in addition to their firebase account collection `document_id`
         match res {
             Ok(response) => {
                 let status_code = response.status().as_u16();
