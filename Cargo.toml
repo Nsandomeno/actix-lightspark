@@ -11,9 +11,24 @@ anyhow = "1.0.75"
 dotenv = "0.15.0"
 lightspark = { path = "../../lightspark" }
 reqwest = "0.11.23"
-secrecy = "0.8.0"
+secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.193", features = ["derive"] }
+serde-aux = "4.3.1"
 serde_json = "1.0.108"
+
 thiserror = "1.0.51"
 tracing = { version = "0.1.40", features = ["log"] }
+tracing-log = "0.2.0"
 tracing-subscriber = "0.3.18"
+
+[dependencies.sqlx]
+version = "0.7.1"
+default-features = false
+features = [
+    "runtime-tokio-rustls",
+    "macros",
+    "postgres",
+    "uuid",
+    "chrono",
+    "migrate",
+]

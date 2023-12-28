@@ -116,7 +116,6 @@ impl Plaid {
         match res {
             Ok(response) => {
                 let status_code = response.status().as_u16();
-
                 info!("Plaid status code: {}", status_code);
                 return response.json::<serde_json::Value>().await
                 
