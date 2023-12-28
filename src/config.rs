@@ -1,7 +1,7 @@
 use secrecy::{Secret, ExposeSecret};
 use serde::Deserialize;
 use sqlx::ConnectOptions;
-use sqlx::postgres::{PgConnectOptions, PgSslMode};
+use sqlx::postgres::{PgConnectOptions, PgSslMode, PgPool, PgPoolOptions};
 use serde_aux::field_attributes::{deserialize_number_from_string, deserialize_bool_from_anything};
 // via: https://github.com/lightsparkdev/lightspark-rs/blob/main/examples/uma-demo/src/config.rs
 // thanks, zhenlu and Lightspark Eng!
@@ -114,3 +114,8 @@ impl DatabaseConfig {
 
 }
 
+pub fn get_connection_pool(configuration: &DatabaseConfig) -> PgPool {
+    PgPoolOptions::new()
+        .acquire_timeout(std::time::Duration::from_secs(2))
+        .connect_lazy_with(configuration.with_db())
+}

@@ -64,15 +64,17 @@ async fn main() -> std::io::Result<()> {
     let account_auth: AccountAuthProvider = AccountAuthProvider::new(
         config.api_client_id.clone(), config.api_client_secret.clone()
     );
-    let client: LightsparkClient<Secp256k1SigningKey> = LightsparkClient::new(account_auth).unwrap();
-    let plaid : plaid::Plaid = plaid::Plaid::new(config.clone());
-
+    let client: web::Data<LightsparkClient<Secp256k1SigningKey>> = web::Data::new(LightsparkClient::new(account_auth).unwrap());
+    let plaid = web::Data::new(plaid::Plaid::new(config.clone()));
+    let connection_pool = web::Data::new(config::get_connection_pool(&config.db_config));
+    let app_config = web::Data::new(config);
     HttpServer::new(move || {
 
         App::new()
-            .app_data(web::Data::new(config.clone()))
-            .app_data(web::Data::new(client.clone()))
-            .app_data(web::Data::new(plaid.clone()))
+            .app_data(app_config.clone())
+            .app_data(client.clone())
+            .app_data(plaid.clone())
+            .app_data(connection_pool.clone())
             .wrap(middleware::NormalizePath::trim())
             .service(health_check)
             .service(plaid_link)
